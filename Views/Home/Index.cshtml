@@ -1,8 +1,73 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Portal Inmobiliario";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="hero-section text-center py-5 mb-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px;">
+    <div class="container">
+        <h1 class="display-4 mb-4">🏠 Portal Inmobiliario</h1>
+        <p class="lead mb-4">Encuentra tu hogar ideal con nuestro sistema de gestión de visitas y reservas</p>
+        <a class="btn btn-light btn-lg" asp-controller="Catalogo" asp-action="Index">
+            <i class="fas fa-search"></i> Explorar Catálogo
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <h3 class="text-primary">🔍</h3>
+                <h5 class="card-title">Búsqueda Avanzada</h5>
+                <p class="card-text">Filtra por ciudad, tipo, precio y características para encontrar exactamente lo que buscas.</p>
+                <a href="@Url.Action("Index", "Catalogo")" class="btn btn-outline-primary">Ver Catálogo</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <h3 class="text-success">📅</h3>
+                <h5 class="card-title">Agendar Visitas</h5>
+                <p class="card-text">Programa visitas a los inmuebles que te interesan de manera fácil y rápida.</p>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a href="@Url.Action("Index", "Catalogo")" class="btn btn-outline-success">Agendar Ahora</a>
+                }
+                else
+                {
+                    <a href="@Url.Page("/Account/Login", new { area = "Identity" })" class="btn btn-outline-success">Iniciar Sesión</a>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <h3 class="text-warning">⚡</h3>
+                <h5 class="card-title">Sistema Rápido</h5>
+                <p class="card-text">Con caché Redis y sesiones personalizadas para una experiencia de navegación optimizada.</p>
+                <a href="@Url.Action("Index", "Catalogo")" class="btn btn-outline-warning">Experimentar</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-5">
+    <h3 class="text-center mb-4">Características del Sistema</h3>
+    <div class="row">
+        <div class="col-md-6">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">✅ <strong>Autenticación de usuarios</strong> con ASP.NET Identity</li>
+                <li class="list-group-item">✅ <strong>Filtros avanzados</strong> con validación personalizada</li>
+                <li class="list-group-item">✅ <strong>Sistema de reservas</strong> con control de tiempo</li>
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">✅ <strong>Caché Redis</strong> para optimización de rendimiento</li>
+                <li class="list-group-item">✅ <strong>Sesiones persistentes</strong> para preferencias de usuario</li>
+                <li class="list-group-item">✅ <strong>Navegación intuitiva</strong> con historial de inmuebles visitados</li>
+            </ul>
+        </div>
+    </div>
 </div>

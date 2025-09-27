@@ -1,0 +1,8 @@
+@if (ViewBag.InmuebleId != null && ViewBag.InmuebleTitulo != null)
+{
+    <li class="nav-item">
+        <a class="nav-link text-primary" asp-controller="Catalogo" asp-action="Detalle" asp-route-id="@ViewBag.InmuebleId" title="Último inmueble visitado">
+            <i class="fas fa-history"></i> Volver a "@ViewBag.InmuebleTitulo"
+        </a>
+    </li>
+}

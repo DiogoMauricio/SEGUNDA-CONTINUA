@@ -1,9 +1,26 @@
 @model PortalInmobiliario.Models.CatalogoViewModel
 @{
     ViewData["Title"] = "Catálogo de Inmuebles";
+    var fromCache = ViewData["FromCache"] as bool?;
 }
 
 <h2>@ViewData["Title"]</h2>
+
+@if (fromCache == true)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <i class="fas fa-rocket"></i> <strong>¡Carga rápida!</strong> Resultados obtenidos desde caché Redis.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+else if (fromCache == false)
+{
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <i class="fas fa-database"></i> Resultados obtenidos desde base de datos y almacenados en caché por 60 segundos.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
 <hr />
 
 <!-- Filtros -->

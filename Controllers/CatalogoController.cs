@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PortalInmobiliario.Data;
 using PortalInmobiliario.Models;
+using PortalInmobiliario.Services;
+using PortalInmobiliario.Extensions;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,29 +12,34 @@ namespace PortalInmobiliario.Controllers
     public class CatalogoController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ICacheService _cacheService;
 
-        public CatalogoController(ApplicationDbContext context)
+        public CatalogoController(ApplicationDbContext context, ICacheService cacheService)
         {
             _context = context;
+            _cacheService = cacheService;
         }
 
         // GET: Catalogo
         public async Task<IActionResult> Index(CatalogoFilterModel filtros)
         {
+            // Cargar últimos filtros de la sesión si no se han especificado nuevos
+            var lastFilters = HttpContext.Session.GetObject<CatalogoFilterModel>("LastFilters");
+            if (lastFilters != null && IsEmptyFilter(filtros))
+            {
+                filtros = lastFilters;
+            }
+
+            // Guardar filtros actuales en sesión
+            if (!IsEmptyFilter(filtros))
+            {
+                HttpContext.Session.SetObject("LastFilters", filtros);
+            }
+
             // Validar filtros
             if (!ModelState.IsValid)
             {
-                // Si hay errores de validación, crear el ViewModel con las ciudades para el dropdown
-                var viewModel = new CatalogoViewModel
-                {
-                    Filtros = filtros,
-                    Ciudades = await _context.Inmuebles
-                        .Where(i => i.Activo)
-                        .Select(i => i.Ciudad)
-                        .Distinct()
-                        .OrderBy(c => c)
-                        .ToListAsync()
-                };
+                var viewModel = await CreateViewModelAsync(filtros);
                 return View(viewModel);
             }
 
@@ -43,22 +50,60 @@ namespace PortalInmobiliario.Controllers
                 ModelState.AddModelError("PrecioMax", "El precio mínimo no puede ser mayor que el precio máximo");
             }
 
-            // Si hay errores después de la validación personalizada
             if (!ModelState.IsValid)
             {
-                var viewModelError = new CatalogoViewModel
-                {
-                    Filtros = filtros,
-                    Ciudades = await _context.Inmuebles
-                        .Where(i => i.Activo)
-                        .Select(i => i.Ciudad)
-                        .Distinct()
-                        .OrderBy(c => c)
-                        .ToListAsync()
-                };
+                var viewModelError = await CreateViewModelAsync(filtros);
                 return View(viewModelError);
             }
 
+            // Intentar obtener desde cache
+            var cacheKey = _cacheService.GenerateCacheKey(filtros);
+            var cachedResult = await _cacheService.GetAsync<CatalogoViewModel>(cacheKey);
+            
+            if (cachedResult != null)
+            {
+                ViewData["FromCache"] = true;
+                return View(cachedResult);
+            }
+
+            // No hay cache, consultar base de datos
+            var resultado = await GetInmueblesFromDatabaseAsync(filtros);
+            
+            // Guardar en cache
+            await _cacheService.SetAsync(cacheKey, resultado, TimeSpan.FromSeconds(60));
+            
+            ViewData["FromCache"] = false;
+            return View(resultado);
+        }
+
+        private bool IsEmptyFilter(CatalogoFilterModel filtros)
+        {
+            return string.IsNullOrEmpty(filtros.Ciudad) &&
+                   !filtros.Tipo.HasValue &&
+                   !filtros.PrecioMin.HasValue &&
+                   !filtros.PrecioMax.HasValue &&
+                   !filtros.DormitoriosMin.HasValue &&
+                   filtros.Pagina == 1;
+        }
+
+        private async Task<CatalogoViewModel> CreateViewModelAsync(CatalogoFilterModel filtros)
+        {
+            var ciudades = await _context.Inmuebles
+                .Where(i => i.Activo)
+                .Select(i => i.Ciudad)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToListAsync();
+
+            return new CatalogoViewModel
+            {
+                Filtros = filtros,
+                Ciudades = ciudades
+            };
+        }
+
+        private async Task<CatalogoViewModel> GetInmueblesFromDatabaseAsync(CatalogoFilterModel filtros)
+        {
             var query = _context.Inmuebles.Where(i => i.Activo);
 
             // Aplicar filtros
@@ -91,7 +136,7 @@ namespace PortalInmobiliario.Controllers
             var totalItems = await query.CountAsync();
             var totalPaginas = (int)Math.Ceiling((double)totalItems / filtros.ItemsPorPagina);
 
-            // Aplicar paginación - convertir a lista primero para evitar problemas con SQLite y decimal
+            // Aplicar paginación
             var inmueblesList = await query.ToListAsync();
             var inmuebles = inmueblesList
                 .OrderBy(i => i.Ciudad)
@@ -108,7 +153,7 @@ namespace PortalInmobiliario.Controllers
                 .OrderBy(c => c)
                 .ToListAsync();
 
-            var resultado = new CatalogoViewModel
+            return new CatalogoViewModel
             {
                 Inmuebles = inmuebles,
                 Filtros = filtros,
@@ -116,8 +161,6 @@ namespace PortalInmobiliario.Controllers
                 TotalPaginas = totalPaginas,
                 Ciudades = ciudades
             };
-
-            return View(resultado);
         }
 
         // GET: Catalogo/Detalle/5
@@ -131,6 +174,10 @@ namespace PortalInmobiliario.Controllers
 
             if (inmueble == null)
                 return NotFound();
+
+            // Guardar el último inmueble visitado en la sesión
+            HttpContext.Session.SetString("LastVisitedInmueble", 
+                System.Text.Json.JsonSerializer.Serialize(new { Id = inmueble.Id, Titulo = inmueble.Titulo }));
 
             // Verificar si hay reserva activa
             var reservaActiva = await _context.Reservas
