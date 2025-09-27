@@ -132,6 +132,13 @@ namespace PortalInmobiliario.Controllers
             if (inmueble == null)
                 return NotFound();
 
+            // Verificar si hay reserva activa
+            var reservaActiva = await _context.Reservas
+                .Where(r => r.InmuebleId == id && r.FechaExpiracion > DateTime.Now)
+                .AnyAsync();
+
+            ViewBag.ReservaActiva = reservaActiva;
+
             return View(inmueble);
         }
     }

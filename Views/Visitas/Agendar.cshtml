@@ -1,0 +1,117 @@
+@model PortalInmobiliario.Models.ViewModels.AgendarVisitaViewModel
+@{
+    ViewData["Title"] = "Agendar Visita";
+}
+
+<h2>@ViewData["Title"]</h2>
+<hr />
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Agendar visita para: @Model.Inmueble?.Titulo</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Agendar" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    
+                    <input asp-for="InmuebleId" type="hidden" />
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="FechaInicio" class="form-label"></label>
+                                <input asp-for="FechaInicio" class="form-control" type="datetime-local" />
+                                <span asp-validation-for="FechaInicio" class="text-danger"></span>
+                                <small class="form-text text-muted">Horario laboral: 08:00 - 19:00</small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="FechaFin" class="form-label"></label>
+                                <input asp-for="FechaFin" class="form-control" type="datetime-local" />
+                                <span asp-validation-for="FechaFin" class="text-danger"></span>
+                                <small class="form-text text-muted">Horario laboral: 08:00 - 19:00</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label asp-for="Notas" class="form-label"></label>
+                        <textarea asp-for="Notas" class="form-control" rows="3" placeholder="Comentarios o solicitudes especiales para la visita..."></textarea>
+                        <span asp-validation-for="Notas" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-calendar-plus"></i> Agendar Visita
+                        </button>
+                        <a asp-controller="Catalogo" asp-action="Detalle" asp-route-id="@Model.InmuebleId" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Información del Inmueble</h5>
+            </div>
+            <div class="card-body">
+                <h6 class="card-title">@Model.Inmueble?.Titulo</h6>
+                <p class="card-text">
+                    <strong>Código:</strong> @Model.Inmueble?.Codigo<br/>
+                    <strong>Tipo:</strong> @Model.Inmueble?.Tipo<br/>
+                    <strong>Ciudad:</strong> @Model.Inmueble?.Ciudad<br/>
+                    <strong>Precio:</strong> @Model.Inmueble?.Precio.ToString("C")<br/>
+                    <strong>Dormitorios:</strong> @Model.Inmueble?.Dormitorios
+                </p>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6>Información importante:</h6>
+                <ul class="small text-muted">
+                    <li>Las visitas solo pueden agendarse en horario laboral (08:00 - 19:00)</li>
+                    <li>La fecha de inicio debe ser posterior a la fecha actual</li>
+                    <li>No se pueden agendar visitas que se solapen con otras existentes</li>
+                    <li>La duración mínima es de 30 minutos</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // Establecer fechas mínimas
+        var now = new Date();
+        var tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(9, 0, 0, 0);
+        
+        var minDateTime = tomorrow.toISOString().slice(0, 16);
+        document.getElementById('FechaInicio').min = minDateTime;
+        document.getElementById('FechaFin').min = minDateTime;
+        
+        // Sincronizar fechas
+        document.getElementById('FechaInicio').addEventListener('change', function() {
+            var startDate = new Date(this.value);
+            startDate.setHours(startDate.getHours() + 1);
+            document.getElementById('FechaFin').min = startDate.toISOString().slice(0, 16);
+            
+            // Si la fecha de fin es anterior, actualizarla
+            var endDate = new Date(document.getElementById('FechaFin').value);
+            if (endDate <= new Date(this.value)) {
+                document.getElementById('FechaFin').value = startDate.toISOString().slice(0, 16);
+            }
+        });
+    </script>
+}

@@ -1,10 +1,28 @@
 @model PortalInmobiliario.Models.Inmueble
 @{
     ViewData["Title"] = "Detalle de Inmueble";
+    // Verificar si hay reserva activa
+    var reservaActiva = ViewBag.ReservaActiva as bool?;
 }
 
 <h2>@ViewData["Title"]</h2>
 <hr />
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 
 <div class="row">
     <div class="col-md-8">
@@ -33,18 +51,36 @@
         <div class="card">
             <div class="card-body">
                 <h5 class="card-title">Acciones</h5>
+                
                 @if (User.Identity.IsAuthenticated)
                 {
-                    <a href="#" class="btn btn-success btn-lg w-100 mb-2" data-bs-toggle="modal" data-bs-target="#agendarVisitaModal">
+                    <a asp-controller="Visitas" asp-action="Agendar" asp-route-id="@Model.Id" class="btn btn-primary btn-lg w-100 mb-2">
                         <i class="fas fa-calendar-plus"></i> Agendar visita
                     </a>
+                    
+                    @if (reservaActiva != true)
+                    {
+                        <form asp-controller="Visitas" asp-action="Reservar" asp-route-id="@Model.Id" method="post" style="display: inline;">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-success btn-lg w-100 mb-2" onclick="return confirm('¿Está seguro que desea reservar este inmueble por 48 horas?')">
+                                <i class="fas fa-lock"></i> Reservar ahora
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Este inmueble ya tiene una reserva activa
+                        </div>
+                    }
                 }
                 else
                 {
                     <div class="alert alert-info">
-                        <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-primary">Inicia sesión</a> para agendar una visita
+                        <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-primary">Inicia sesión</a> para agendar una visita o reservar
                     </div>
                 }
+                
                 <a asp-action="Index" class="btn btn-secondary w-100">
                     <i class="fas fa-arrow-left"></i> Volver al catálogo
                 </a>
@@ -52,45 +88,3 @@
         </div>
     </div>
 </div>
-
-<!-- Modal para agendar visita -->
-<div class="modal fade" id="agendarVisitaModal" tabindex="-1" aria-labelledby="agendarVisitaModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="agendarVisitaModalLabel">Agendar Visita</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="agendarVisitaForm">
-                    <input type="hidden" value="@Model.Id" id="inmuebleId" />
-                    <div class="mb-3">
-                        <label for="fechaVisita" class="form-label">Fecha y hora de la visita</label>
-                        <input type="datetime-local" class="form-control" id="fechaVisita" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="observaciones" class="form-label">Observaciones (opcional)</label>
-                        <textarea class="form-control" id="observaciones" rows="3"></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-success" onclick="agendarVisita()">Agendar visita</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    <script>
-        function agendarVisita() {
-            // Por ahora solo mostramos una alerta, más adelante implementaremos la funcionalidad completa
-            alert('Funcionalidad de agendar visita será implementada en las siguientes preguntas.');
-            $('#agendarVisitaModal').modal('hide');
-        }
-        
-        // Establecer fecha mínima como hoy
-        document.getElementById('fechaVisita').min = new Date().toISOString().slice(0, 16);
-    </script>
-}
