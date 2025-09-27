@@ -1,0 +1,79 @@
+@{
+    ViewData["Title"] = "Acceso Denegado";
+}
+
+<div class="text-center py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h3 class="mb-0">
+                            <i class="fas fa-ban"></i> Acceso Denegado
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <i class="fas fa-user-slash fa-5x text-danger"></i>
+                        </div>
+                        
+                        <h4 class="text-danger mb-3">¡Acceso Restringido!</h4>
+                        
+                        <p class="text-muted mb-4">
+                            Lo sentimos, pero no tienes permisos para acceder a esta sección del sistema.
+                        </p>
+                        
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle"></i> <strong>Panel Broker:</strong> 
+                            Esta sección está reservada exclusivamente para usuarios con rol de <strong>Broker</strong>.
+                        </div>
+                        
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <p class="mb-4">
+                                <small class="text-muted">
+                                    Usuario actual: <strong>@User.Identity.Name</strong>
+                                </small>
+                            </p>
+                            
+                            <div class="d-grid gap-2 d-md-block">
+                                <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+                                    <i class="fas fa-home"></i> Ir al Inicio
+                                </a>
+                                <a asp-controller="Catalogo" asp-action="Index" class="btn btn-outline-primary">
+                                    <i class="fas fa-list"></i> Ver Catálogo
+                                </a>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted mb-4">
+                                Necesitas iniciar sesión con una cuenta autorizada.
+                            </p>
+                            
+                            <div class="d-grid gap-2 d-md-block">
+                                <a asp-page="/Account/Login" asp-area="Identity" class="btn btn-primary">
+                                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                                </a>
+                                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+                                    <i class="fas fa-home"></i> Ir al Inicio
+                                </a>
+                            </div>
+                        }
+                        
+                        <hr class="my-4">
+                        
+                        <div class="text-start">
+                            <h6 class="text-muted">¿Cómo obtener acceso?</h6>
+                            <ul class="text-muted small">
+                                <li>Contacta al administrador del sistema</li>
+                                <li>Asegúrate de tener una cuenta con rol <strong>Broker</strong></li>
+                                <li>Para pruebas, usa: <code>broker@portal.com</code> / <code>Broker123!</code></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

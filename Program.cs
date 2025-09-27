@@ -41,7 +41,14 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => {
     options.Password.RequireUppercase = false;
     options.Password.RequireLowercase = false;
 })
+.AddRoles<IdentityRole>() // Agregar soporte para roles
 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+// Configurar autorización
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.AccessDeniedPath = "/Error/AccessDenied";
+});
 
 builder.Services.AddControllersWithViews();
 
@@ -71,6 +78,14 @@ app.UseAuthorization();
 
 app.MapRazorPages();
 app.MapControllerRoute(
+    name: "error",
+    pattern: "error/{action=Index}",
+    defaults: new { controller = "Error" });
+app.MapControllerRoute(
+    name: "broker",
+    pattern: "broker/{action=Index}/{id?}",
+    defaults: new { controller = "Broker", action = "Index" });
+app.MapControllerRoute(
     name: "catalogo",
     pattern: "catalogo/{action=Index}/{id?}",
     defaults: new { controller = "Catalogo", action = "Index" });
@@ -82,7 +97,10 @@ app.MapControllerRoute(
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    PortalInmobiliario.Data.DataSeeder.SeedData(context);
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    
+    await PortalInmobiliario.Data.DataSeeder.SeedDataAsync(context, userManager, roleManager);
 }
 
 app.Run();

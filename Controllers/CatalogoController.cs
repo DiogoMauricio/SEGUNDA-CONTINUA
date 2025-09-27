@@ -21,19 +21,28 @@ namespace PortalInmobiliario.Controllers
         }
 
         // GET: Catalogo
-        public async Task<IActionResult> Index(CatalogoFilterModel filtros)
+        public async Task<IActionResult> Index(CatalogoFilterModel filtros, bool limpiar = false)
         {
-            // Cargar últimos filtros de la sesión si no se han especificado nuevos
-            var lastFilters = HttpContext.Session.GetObject<CatalogoFilterModel>("LastFilters");
-            if (lastFilters != null && IsEmptyFilter(filtros))
+            // Si se solicita limpiar, crear filtros vacíos y limpiar sesión
+            if (limpiar)
             {
-                filtros = lastFilters;
+                filtros = new CatalogoFilterModel { Pagina = 1, ItemsPorPagina = 10 };
+                HttpContext.Session.Remove("LastFilters");
             }
-
-            // Guardar filtros actuales en sesión
-            if (!IsEmptyFilter(filtros))
+            else
             {
-                HttpContext.Session.SetObject("LastFilters", filtros);
+                // Cargar últimos filtros de la sesión si no se han especificado nuevos
+                var lastFilters = HttpContext.Session.GetObject<CatalogoFilterModel>("LastFilters");
+                if (lastFilters != null && IsEmptyFilter(filtros))
+                {
+                    filtros = lastFilters;
+                }
+
+                // Guardar filtros actuales en sesión (solo si no están vacíos)
+                if (!IsEmptyFilter(filtros))
+                {
+                    HttpContext.Session.SetObject("LastFilters", filtros);
+                }
             }
 
             // Validar filtros

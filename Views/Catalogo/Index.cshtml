@@ -83,7 +83,7 @@ else if (fromCache == false)
                 
                 <div class="col-md-9 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary me-2">Buscar</button>
-                    <a asp-action="Index" class="btn btn-secondary">Limpiar filtros</a>
+                    <a asp-action="Index" asp-route-limpiar="true" class="btn btn-secondary">Limpiar filtros</a>
                 </div>
             </div>
         </div>

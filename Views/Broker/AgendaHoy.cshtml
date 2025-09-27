@@ -1,0 +1,167 @@
+@model IEnumerable<PortalInmobiliario.Models.Visita>
+@{
+    ViewData["Title"] = "Agenda del Día";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-calendar-day"></i> Agenda del Día - @DateTime.Today.ToString("dd/MM/yyyy")</h2>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver al Panel
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5><i class="fas fa-clock"></i> Visitas Programadas para Hoy</h5>
+            <span class="badge bg-primary">@Model.Count() visitas</span>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Horario</th>
+                            <th>Inmueble</th>
+                            <th>Cliente</th>
+                            <th>Estado</th>
+                            <th>Notas</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var visita in Model)
+                        {
+                            <tr class="@(visita.Estado == PortalInmobiliario.Models.EstadoVisita.Confirmada ? "table-success" : 
+                                        visita.Estado == PortalInmobiliario.Models.EstadoVisita.Cancelada ? "table-danger" : "")">
+                                <td>
+                                    <strong>@visita.FechaInicio.ToString("HH:mm")</strong> - @visita.FechaFin.ToString("HH:mm")
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>@visita.Inmueble.Codigo</strong>
+                                        <br>
+                                        <small class="text-muted">@visita.Inmueble.Titulo</small>
+                                        <br>
+                                        <small class="text-info">@visita.Inmueble.Ciudad</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <i class="fas fa-user"></i> @visita.Usuario.Email
+                                </td>
+                                <td>
+                                    @switch (visita.Estado)
+                                    {
+                                        case PortalInmobiliario.Models.EstadoVisita.Solicitada:
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-clock"></i> Solicitada
+                                            </span>
+                                            break;
+                                        case PortalInmobiliario.Models.EstadoVisita.Confirmada:
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check"></i> Confirmada
+                                            </span>
+                                            break;
+                                        case PortalInmobiliario.Models.EstadoVisita.Cancelada:
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times"></i> Cancelada
+                                            </span>
+                                            break;
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(visita.Notas))
+                                    {
+                                        <small>@visita.Notas</small>
+                                    }
+                                    else
+                                    {
+                                        <small class="text-muted">Sin notas</small>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (visita.Estado == PortalInmobiliario.Models.EstadoVisita.Solicitada)
+                                    {
+                                        <div class="btn-group" role="group">
+                                            <form asp-action="ConfirmarVisita" asp-route-id="@visita.Id" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-outline-success btn-sm" 
+                                                        title="Confirmar visita">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </form>
+                                            
+                                            <form asp-action="CancelarVisita" asp-route-id="@visita.Id" method="post" class="d-inline" 
+                                                  onsubmit="return confirm('¿Está seguro de cancelar esta visita?')">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-outline-danger btn-sm" 
+                                                        title="Cancelar visita">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <small class="text-muted">Procesada</small>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No hay visitas programadas para hoy</h4>
+                <p class="text-muted">Las visitas aparecerán aquí cuando los clientes las agenden.</p>
+            </div>
+        }
+    </div>
+</div>
+
+@if (Model.Any())
+{
+    <div class="mt-4">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card bg-warning text-white">
+                    <div class="card-body text-center">
+                        <h4>@Model.Count(v => v.Estado == PortalInmobiliario.Models.EstadoVisita.Solicitada)</h4>
+                        <p class="mb-0">Pendientes</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <h4>@Model.Count(v => v.Estado == PortalInmobiliario.Models.EstadoVisita.Confirmada)</h4>
+                        <p class="mb-0">Confirmadas</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-danger text-white">
+                    <div class="card-body text-center">
+                        <h4>@Model.Count(v => v.Estado == PortalInmobiliario.Models.EstadoVisita.Cancelada)</h4>
+                        <p class="mb-0">Canceladas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}

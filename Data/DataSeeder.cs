@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PortalInmobiliario.Models;
 
@@ -5,7 +6,76 @@ namespace PortalInmobiliario.Data
 {
     public static class DataSeeder
     {
+        public static async Task SeedDataAsync(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
+        {
+            // Crear roles si no existen
+            await SeedRolesAsync(roleManager);
+            
+            // Crear usuarios si no existen
+            await SeedUsersAsync(userManager);
+            
+            // Crear inmuebles si no existen
+            SeedInmuebles(context);
+        }
+
+        private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
+        {
+            string[] roleNames = { "Broker", "Cliente" };
+            
+            foreach (var roleName in roleNames)
+            {
+                if (!await roleManager.RoleExistsAsync(roleName))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(roleName));
+                }
+            }
+        }
+
+        private static async Task SeedUsersAsync(UserManager<IdentityUser> userManager)
+        {
+            // Crear usuario Broker
+            var brokerEmail = "broker@portal.com";
+            if (await userManager.FindByEmailAsync(brokerEmail) == null)
+            {
+                var brokerUser = new IdentityUser
+                {
+                    UserName = brokerEmail,
+                    Email = brokerEmail,
+                    EmailConfirmed = true
+                };
+
+                var result = await userManager.CreateAsync(brokerUser, "Broker123!");
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(brokerUser, "Broker");
+                }
+            }
+
+            // Crear usuario Cliente
+            var clienteEmail = "cliente@portal.com";
+            if (await userManager.FindByEmailAsync(clienteEmail) == null)
+            {
+                var clienteUser = new IdentityUser
+                {
+                    UserName = clienteEmail,
+                    Email = clienteEmail,
+                    EmailConfirmed = true
+                };
+
+                var result = await userManager.CreateAsync(clienteUser, "Cliente123!");
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(clienteUser, "Cliente");
+                }
+            }
+        }
+
         public static void SeedData(ApplicationDbContext context)
+        {
+            SeedInmuebles(context);
+        }
+
+        private static void SeedInmuebles(ApplicationDbContext context)
         {
             // Verificar si ya hay datos
             if (context.Inmuebles.Any())

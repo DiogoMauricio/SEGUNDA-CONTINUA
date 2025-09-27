@@ -1,0 +1,119 @@
+@model PortalInmobiliario.Models.Inmueble
+@{
+    ViewData["Title"] = "Crear Inmueble";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-plus-circle"></i> Crear Nuevo Inmueble</h2>
+    <a asp-action="Inmuebles" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver a Inmuebles
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-home"></i> Datos del Inmueble</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="CreateInmueble" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Codigo" class="form-label"></label>
+                                <input asp-for="Codigo" class="form-control" placeholder="Ej: CASA001" />
+                                <span asp-validation-for="Codigo" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Tipo" class="form-label"></label>
+                                <select asp-for="Tipo" asp-items="Html.GetEnumSelectList<PortalInmobiliario.Models.TipoInmueble>()" class="form-select">
+                                    <option value="">Seleccionar tipo</option>
+                                </select>
+                                <span asp-validation-for="Tipo" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label asp-for="Titulo" class="form-label"></label>
+                        <input asp-for="Titulo" class="form-control" placeholder="Título descriptivo del inmueble" />
+                        <span asp-validation-for="Titulo" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Ciudad" class="form-label"></label>
+                                <input asp-for="Ciudad" class="form-control" placeholder="Ciudad" />
+                                <span asp-validation-for="Ciudad" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Direccion" class="form-label"></label>
+                                <input asp-for="Direccion" class="form-control" placeholder="Dirección completa" />
+                                <span asp-validation-for="Direccion" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label asp-for="Dormitorios" class="form-label"></label>
+                                <input asp-for="Dormitorios" class="form-control" type="number" min="0" />
+                                <span asp-validation-for="Dormitorios" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label asp-for="Banos" class="form-label"></label>
+                                <input asp-for="Banos" class="form-control" type="number" min="1" />
+                                <span asp-validation-for="Banos" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label asp-for="MetrosCuadrados" class="form-label">Metros Cuadrados</label>
+                                <input asp-for="MetrosCuadrados" class="form-control" type="number" min="1" step="0.01" />
+                                <span asp-validation-for="MetrosCuadrados" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label asp-for="Precio" class="form-label"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input asp-for="Precio" class="form-control" type="number" min="0.01" step="0.01" />
+                        </div>
+                        <span asp-validation-for="Precio" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="form-group mb-4">
+                        <label asp-for="Imagen" class="form-label">URL de Imagen (opcional)</label>
+                        <input asp-for="Imagen" class="form-control" placeholder="https://ejemplo.com/imagen.jpg" />
+                        <span asp-validation-for="Imagen" class="text-danger"></span>
+                        <div class="form-text">URL completa de la imagen del inmueble</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a asp-action="Inmuebles" class="btn btn-secondary me-md-2">Cancelar</a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Crear Inmueble
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

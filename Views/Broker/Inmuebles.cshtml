@@ -1,0 +1,111 @@
+@model IEnumerable<PortalInmobiliario.Models.Inmueble>
+@{
+    ViewData["Title"] = "Gestión de Inmuebles";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-home"></i> Gestión de Inmuebles</h2>
+    <div>
+        <a asp-action="CreateInmueble" class="btn btn-success">
+            <i class="fas fa-plus"></i> Nuevo Inmueble
+        </a>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver al Panel
+        </a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Código</th>
+                            <th>Título</th>
+                            <th>Ciudad</th>
+                            <th>Tipo</th>
+                            <th>Precio</th>
+                            <th>Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr class="@(item.Activo ? "" : "table-secondary")">
+                                <td>
+                                    <strong>@item.Codigo</strong>
+                                </td>
+                                <td>@item.Titulo</td>
+                                <td>@item.Ciudad</td>
+                                <td>
+                                    <span class="badge bg-info">@item.Tipo</span>
+                                </td>
+                                <td>
+                                    <strong>@item.Precio.ToString("C")</strong>
+                                </td>
+                                <td>
+                                    @if (item.Activo)
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check"></i> Activo
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-pause"></i> Inactivo
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="EditInmueble" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        
+                                        <form asp-action="ToggleInmueble" asp-route-id="@item.Id" method="post" class="d-inline" 
+                                              onsubmit="return confirm('@(item.Activo ? "¿Desactivar" : "¿Activar") este inmueble?')">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-@(item.Activo ? "warning" : "success") btn-sm" 
+                                                    title="@(item.Activo ? "Desactivar" : "Activar")">
+                                                <i class="fas fa-@(item.Activo ? "pause" : "play")"></i>
+                                            </button>
+                                        </form>
+                                        
+                                        <a asp-controller="Catalogo" asp-action="Detalle" asp-route-id="@item.Id" 
+                                           class="btn btn-outline-info btn-sm" title="Ver detalle" target="_blank">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-home fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No hay inmuebles registrados</h4>
+                <p class="text-muted">Comienza creando tu primer inmueble.</p>
+                <a asp-action="CreateInmueble" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Crear Primer Inmueble
+                </a>
+            </div>
+        }
+    </div>
+</div>

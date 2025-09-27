@@ -26,6 +26,14 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Catalogo" asp-action="Index">Catálogo</a>
                         </li>
+                        @if (User.IsInRole("Broker"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-primary fw-bold" asp-area="" asp-controller="Broker" asp-action="Index">
+                                    <i class="fas fa-chart-bar"></i> Panel Broker
+                                </a>
+                            </li>
+                        }
                         @await Component.InvokeAsync("LastVisitedInmueble")
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>

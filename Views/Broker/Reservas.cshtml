@@ -1,0 +1,169 @@
+@model IEnumerable<PortalInmobiliario.Models.Reserva>
+@{
+    ViewData["Title"] = "Gestión de Reservas";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-lock"></i> Gestión de Reservas Activas</h2>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver al Panel
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5><i class="fas fa-list"></i> Reservas Activas</h5>
+            <span class="badge bg-info">@Model.Count() reservas</span>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Inmueble</th>
+                            <th>Cliente</th>
+                            <th>Fecha Reserva</th>
+                            <th>Expira</th>
+                            <th>Tiempo Restante</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var reserva in Model)
+                        {
+                            var tiempoRestante = reserva.FechaExpiracion - DateTime.Now;
+                            var esUrgente = tiempoRestante.TotalHours <= 2;
+                            
+                            <tr class="@(esUrgente ? "table-warning" : "")">
+                                <td>
+                                    <div>
+                                        <strong>@reserva.Inmueble.Codigo</strong>
+                                        <br>
+                                        <small class="text-muted">@reserva.Inmueble.Titulo</small>
+                                        <br>
+                                        <small class="text-info">@reserva.Inmueble.Ciudad</small>
+                                        <br>
+                                        <span class="badge bg-success">@reserva.Inmueble.Precio.ToString("C")</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <i class="fas fa-user"></i> @reserva.UsuarioId
+                                </td>
+                                <td>
+                                    <small>@reserva.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</small>
+                                </td>
+                                <td>
+                                    <small class="@(esUrgente ? "text-danger fw-bold" : "")">
+                                        @reserva.FechaExpiracion.ToString("dd/MM/yyyy HH:mm")
+                                    </small>
+                                </td>
+                                <td>
+                                    @if (tiempoRestante.TotalMinutes > 0)
+                                    {
+                                        <small class="@(esUrgente ? "text-danger fw-bold" : "text-success")">
+                                            @if (tiempoRestante.TotalDays >= 1)
+                                            {
+                                                <span>@((int)tiempoRestante.TotalDays) días</span>
+                                            }
+                                            else if (tiempoRestante.TotalHours >= 1)
+                                            {
+                                                <span>@((int)tiempoRestante.TotalHours)h @((int)tiempoRestante.Minutes)m</span>
+                                            }
+                                            else
+                                            {
+                                                <span>@((int)tiempoRestante.TotalMinutes) min</span>
+                                            }
+                                            
+                                            @if (esUrgente)
+                                            {
+                                                <br><i class="fas fa-exclamation-triangle"></i> <small>¡URGENTE!</small>
+                                            }
+                                        </small>
+                                    }
+                                    else
+                                    {
+                                        <small class="text-danger">
+                                            <i class="fas fa-clock"></i> Expirada
+                                        </small>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group-vertical" role="group">
+                                        <form asp-action="LiberarReserva" asp-route-id="@reserva.Id" method="post" class="d-inline" 
+                                              onsubmit="return confirm('¿Está seguro de liberar esta reserva? El inmueble volverá a estar disponible.')">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-danger btn-sm mb-1" 
+                                                    title="Liberar reserva">
+                                                <i class="fas fa-unlock"></i> Liberar
+                                            </button>
+                                        </form>
+                                        
+                                        <a asp-controller="Catalogo" asp-action="Detalle" asp-route-id="@reserva.InmuebleId" 
+                                           class="btn btn-outline-info btn-sm" title="Ver inmueble" target="_blank">
+                                            <i class="fas fa-eye"></i> Ver
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-3">
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle"></i> <strong>Información:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Las reservas <strong class="text-warning">destacadas</strong> expiran en menos de 2 horas.</li>
+                        <li>Puedes liberar una reserva para que el inmueble vuelva a estar disponible.</li>
+                        <li>Las reservas expiradas se eliminan automáticamente del sistema.</li>
+                    </ul>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-unlock fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No hay reservas activas</h4>
+                <p class="text-muted">Cuando los clientes reserven inmuebles, aparecerán aquí para su gestión.</p>
+            </div>
+        }
+    </div>
+</div>
+
+@if (Model.Any())
+{
+    <div class="mt-4">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <h4>@Model.Count()</h4>
+                        <p class="mb-0">Total Activas</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card bg-warning text-white">
+                    <div class="card-body text-center">
+                        <h4>@Model.Count(r => (r.FechaExpiracion - DateTime.Now).TotalHours <= 2)</h4>
+                        <p class="mb-0">Próximas a Expirar</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
