@@ -1,0 +1,96 @@
+@model PortalInmobiliario.Models.Inmueble
+@{
+    ViewData["Title"] = "Detalle de Inmueble";
+}
+
+<h2>@ViewData["Title"]</h2>
+<hr />
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">@Model.Titulo</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="card-text"><strong>Código:</strong> @Model.Codigo</p>
+                        <p class="card-text"><strong>Tipo:</strong> @Model.Tipo</p>
+                        <p class="card-text"><strong>Ciudad:</strong> @Model.Ciudad</p>
+                        <p class="card-text"><strong>Dirección:</strong> @Model.Direccion</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="card-text"><strong>Precio:</strong> @Model.Precio.ToString("C")</p>
+                        <p class="card-text"><strong>Dormitorios:</strong> @Model.Dormitorios</p>
+                        <p class="card-text"><strong>Baños:</strong> @Model.Banos</p>
+                        <p class="card-text"><strong>Metros cuadrados:</strong> @Model.MetrosCuadrados m²</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Acciones</h5>
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <a href="#" class="btn btn-success btn-lg w-100 mb-2" data-bs-toggle="modal" data-bs-target="#agendarVisitaModal">
+                        <i class="fas fa-calendar-plus"></i> Agendar visita
+                    </a>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-primary">Inicia sesión</a> para agendar una visita
+                    </div>
+                }
+                <a asp-action="Index" class="btn btn-secondary w-100">
+                    <i class="fas fa-arrow-left"></i> Volver al catálogo
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para agendar visita -->
+<div class="modal fade" id="agendarVisitaModal" tabindex="-1" aria-labelledby="agendarVisitaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="agendarVisitaModalLabel">Agendar Visita</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="agendarVisitaForm">
+                    <input type="hidden" value="@Model.Id" id="inmuebleId" />
+                    <div class="mb-3">
+                        <label for="fechaVisita" class="form-label">Fecha y hora de la visita</label>
+                        <input type="datetime-local" class="form-control" id="fechaVisita" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="observaciones" class="form-label">Observaciones (opcional)</label>
+                        <textarea class="form-control" id="observaciones" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="agendarVisita()">Agendar visita</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function agendarVisita() {
+            // Por ahora solo mostramos una alerta, más adelante implementaremos la funcionalidad completa
+            alert('Funcionalidad de agendar visita será implementada en las siguientes preguntas.');
+            $('#agendarVisitaModal').modal('hide');
+        }
+        
+        // Establecer fecha mínima como hoy
+        document.getElementById('fechaVisita').min = new Date().toISOString().slice(0, 16);
+    </script>
+}
